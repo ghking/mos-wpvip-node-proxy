@@ -42,5 +42,6 @@ export function loadEnvFromProcess(options: LoadEnvOptions = {}): ProxyEnv {
         ORIGIN_URL: required('ORIGIN_URL'),
         SURFACE_SLUG: required('SURFACE_SLUG'),
         MONETIZATION_OS_SECRET_KEY: required('MONETIZATION_OS_SECRET_KEY'),
+        KNOWN_AGENTS_ACCESS_TOKEN: process.env.KNOWN_AGENTS_ACCESS_TOKEN,
     }
 }

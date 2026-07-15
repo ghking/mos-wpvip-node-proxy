@@ -9,6 +9,10 @@ export interface DomainMapEntry {
     mosSecretKeyEnvVar: string
     /** Resolved at startup from `process.env[mosSecretKeyEnvVar]`. */
     mosSecretKey: string
+    /** VIP environment variable name that stores this domain's Known Agents access token. */
+    knownAgentsAccessTokenEnvVar?: string
+    /** Resolved at startup from `process.env[knownAgentsAccessTokenEnvVar]`. */
+    knownAgentsAccessToken?: string
 }
 
 /** Hostname (lowercase, no port) -> domain config. */
@@ -18,15 +22,18 @@ type RawDomainMapEntry = {
     originUrl?: string
     surfaceSlug?: string
     mosSecretKeyEnvVar?: string
+    knownAgentsAccessTokenEnvVar?: string
     ORIGIN_URL?: string
     SURFACE_SLUG?: string
     MONETIZATION_OS_SECRET_KEY_ENV?: string
+    KNOWN_AGENTS_ACCESS_TOKEN_ENV?: string
 }
 
-function normalizeEntry(host: string, raw: RawDomainMapEntry): Omit<DomainMapEntry, 'mosSecretKey'> {
+function normalizeEntry(host: string, raw: RawDomainMapEntry): Omit<DomainMapEntry, 'mosSecretKey' | 'knownAgentsAccessToken'> {
     const originUrl = raw.originUrl ?? raw.ORIGIN_URL
     const surfaceSlug = raw.surfaceSlug ?? raw.SURFACE_SLUG
     const mosSecretKeyEnvVar = raw.mosSecretKeyEnvVar ?? raw.MONETIZATION_OS_SECRET_KEY_ENV
+    const knownAgentsAccessTokenEnvVar = raw.knownAgentsAccessTokenEnvVar ?? raw.KNOWN_AGENTS_ACCESS_TOKEN_ENV
 
     if (!originUrl || originUrl === '') {
         throw new Error(`Domain map entry for "${host}" is missing originUrl (or ORIGIN_URL)`)
@@ -51,6 +58,7 @@ function normalizeEntry(host: string, raw: RawDomainMapEntry): Omit<DomainMapEnt
         originUrl: parsedOrigin.href.replace(/\/$/, '') || parsedOrigin.href,
         surfaceSlug,
         mosSecretKeyEnvVar,
+        ...(knownAgentsAccessTokenEnvVar ? { knownAgentsAccessTokenEnvVar } : {}),
     }
 }
 
@@ -83,7 +91,7 @@ export function lookupDomainEntry(domainMap: DomainMap, requestUrl: string | URL
  * Fails fast when a referenced env var is missing or empty.
  */
 export function resolveDomainMapSecrets(
-    domainMap: Record<string, Omit<DomainMapEntry, 'mosSecretKey'>>,
+    domainMap: Record<string, Omit<DomainMapEntry, 'mosSecretKey' | 'knownAgentsAccessToken'>>,
     env: NodeJS.ProcessEnv = process.env,
 ): DomainMap {
     const resolved: DomainMap = {}
@@ -95,10 +103,14 @@ export function resolveDomainMapSecrets(
                 `Missing required environment variable "${entry.mosSecretKeyEnvVar}" for domain "${host}"`,
             )
         }
+        const knownAgentsAccessToken = entry.knownAgentsAccessTokenEnvVar
+            ? env[entry.knownAgentsAccessTokenEnvVar]
+            : undefined
 
         resolved[host] = {
             ...entry,
             mosSecretKey,
+            ...(knownAgentsAccessToken ? { knownAgentsAccessToken } : {}),
         }
     }
 
@@ -123,7 +135,7 @@ export function loadDomainMapFromFile(filePath: string, env: NodeJS.ProcessEnv =
         throw new Error(`Domain map file "${absolutePath}" must be a JSON object`)
     }
 
-    const unresolved: Record<string, Omit<DomainMapEntry, 'mosSecretKey'>> = {}
+    const unresolved: Record<string, Omit<DomainMapEntry, 'mosSecretKey' | 'knownAgentsAccessToken'>> = {}
 for (const [host, raw] of Object.entries(parsed as Record<string, RawDomainMapEntry>)) {
     const normalizedHost = normalizeHostname(host)
     if (!normalizedHost) {

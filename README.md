@@ -68,6 +68,22 @@ Example:
 {"X-Api-Key": "secret", "X-Custom": "my-value"}
 ```
 
+## Optional: Known Agents tracking
+
+Set `KNOWN_AGENTS_ACCESS_TOKEN` in `.env` or as a VIP environment variable to enable [Known Agents](https://knownagents.com/) tracking for [Agent Analytics](https://knownagents.com/products/agent-analytics) and [LLM Referral Tracking](https://knownagents.com/products/llm-referral-tracking) in single-domain mode.
+
+In multi-domain mode, set `knownAgentsAccessTokenEnvVar` on each domain-map entry to the name of the environment variable containing that domain's access token. The env-var-style alias `KNOWN_AGENTS_ACCESS_TOKEN_ENV` is also supported.
+
+Set the single-domain access token on VIP:
+
+```bash
+vip @mos-testing-node.production config envvar set KNOWN_AGENTS_ACCESS_TOKEN
+```
+
+In multi-domain mode, use the same command with the environment-variable name configured in each domain-map entry.
+
+When an access token is not configured, tracking is disabled for that site.
+
 ## Commands
 
 - `pnpm run build` — Compile TypeScript to `dist/`.

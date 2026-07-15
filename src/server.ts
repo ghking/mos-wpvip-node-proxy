@@ -10,15 +10,18 @@ import { parseServerCliArgs } from './parseArgs.js'
 import { createProxyFetch } from './proxyHandler.js'
 import type { ProxyEnv } from './env.js'
 import { resolveOriginUrlForRequest } from './requestRouting.js'
+import { createKnownAgentsPageviewTracker } from './knownAgentsTracker.js'
 
 const port = Number(process.env.PORT ?? '8787')
 
-let handleRequest: (request: Request) => Promise<Response>
 let env: ProxyEnv
+let handleRequest: (request: Request) => Promise<Response>
+let trackKnownAgentsPageview: ReturnType<typeof createKnownAgentsPageviewTracker>
 try {
     const cli = parseServerCliArgs()
     env = loadEnvFromProcess({ domainMapFile: cli.domainMapFile })
     handleRequest = createProxyFetch(env)
+    trackKnownAgentsPageview = createKnownAgentsPageviewTracker(env)
 } catch (e) {
     console.error(e instanceof Error ? e.message : e)
     console.error(
@@ -38,6 +41,8 @@ createServer(async (req: IncomingMessage, res: ServerResponse) => {
     }
 
     try {
+        trackKnownAgentsPageview?.(req, res)
+
         const host = req.headers.host ?? `localhost:${port}`
         // Prefer x-forwarded-proto set by the upstream reverse proxy (e.g. WP VIP edge)
         // so that the reconstructed URL carries the correct scheme. Without this, all

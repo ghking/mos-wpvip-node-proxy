@@ -15,6 +15,7 @@ export interface ProxyEnv {
     MONETIZATION_OS_ENDPOINTS_PREFIX?: string
     /** Required in single-domain mode; omitted when each domain map entry supplies its own secret. */
     MONETIZATION_OS_SECRET_KEY?: string
+    KNOWN_AGENTS_ACCESS_TOKEN?: string
     SURFACE_DECISIONS_IGNORE_PATHS?: string
     /** Comma-separated regex patterns for cookie names forwarded to surface decisions as http.cookies. */
     SURFACE_DECISIONS_COOKIES?: string

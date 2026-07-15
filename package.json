@@ -12,6 +12,7 @@
         "validate": "pnpm dlx @automattic/vip-go-preflight-checks"
     },
     "dependencies": {
+        "@knownagents/sdk": "2.2.0",
         "@monetizationos/proxy": "1.5.0",
         "@types/node": "^25.9.1",
         "esbuild": "^0.28.0",

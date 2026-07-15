@@ -30,11 +30,23 @@ describe('loadEnvFromProcess', () => {
             vi.stubEnv(key, value)
         }
 
-        expect(loadEnvFromProcess()).toMatchObject({
+        const env = loadEnvFromProcess()
+
+        expect(env).toMatchObject({
             ORIGIN_URL: baseEnv.ORIGIN_URL,
             SURFACE_SLUG: baseEnv.SURFACE_SLUG,
             MONETIZATION_OS_SECRET_KEY: baseEnv.MONETIZATION_OS_SECRET_KEY,
         })
+        expect(env.KNOWN_AGENTS_ACCESS_TOKEN).toBeUndefined()
+    })
+
+    it('loads an optional Known Agents access token in single-domain mode', () => {
+        for (const [key, value] of Object.entries(baseEnv)) {
+            vi.stubEnv(key, value)
+        }
+        vi.stubEnv('KNOWN_AGENTS_ACCESS_TOKEN', 'known_agents_test')
+
+        expect(loadEnvFromProcess().KNOWN_AGENTS_ACCESS_TOKEN).toBe('known_agents_test')
     })
 
     it('loads a domain map and resolves per-domain secret env vars', () => {
